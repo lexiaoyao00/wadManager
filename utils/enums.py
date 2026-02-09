@@ -7,4 +7,5 @@ class FileType(Enum):
     VIDEO = 'video'
     AUDIO = 'audio'
     DOC = 'doc'
+    MOD = 'mod'
     UNKNOWN = 'unknown'

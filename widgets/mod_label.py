@@ -42,8 +42,6 @@ class InstallStateChip(ft.Chip):
 
 
 
-
-
 @ft.control
 class ModContainer(ft.Container):
     def __init__(self,mod_info: ModInfo):
@@ -98,6 +96,7 @@ class ModLabel(ft.GestureDetector):
         self.installed = False
         if self.mod_info.state == InstallState.INSTALLED:
             self.installed = True
+
         super().__init__()
 
     def init(self):
@@ -108,8 +107,7 @@ class ModLabel(ft.GestureDetector):
         self.on_enter = self._on_enter
         self.on_exit = self._on_exit
         self.on_tap = self._select
-        self.on_double_tap = self._install
-
+        # self.on_double_tap = self._install
 
     def _on_exit(self, e:ft.PointerEvent):
         if self.selected:

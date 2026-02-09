@@ -8,9 +8,11 @@ def judge_file_type(file_path : str|Path):
     if not path.is_file():
         raise ValueError(f"{str(path)} 不是一个文件")
 
-    if path.suffix in ['.jpg', '.png', '.jpeg', '.bmp', 'webp']:
+    file_suffix = path.suffix.lower()
+
+    if file_suffix in ['.jpg', '.png', '.jpeg', '.bmp', 'webp']:
         return FileType.IMAGE
-    elif path.suffix in ['.mp4', '.avi', '.mov', '.mkv', '.flv']:
+    elif file_suffix in ['.mp4', '.avi', '.mov', '.mkv', '.flv']:
         return FileType.VIDEO
     else:
         return FileType.UNKNOWN

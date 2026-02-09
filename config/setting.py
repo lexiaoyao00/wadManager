@@ -12,10 +12,13 @@ class BaseSettings(BaseModel):
     debug: bool = Field(default=False, description="是否开启调试模式")
 
     # 路径配置
-    log_dir: str = Field(default=str(PRO_PATH / "logs"))
-    data_dir: str = Field(default=str(PRO_PATH / "data"))
-    temp_dir: str = Field(default=str(PRO_PATH / "temp"))
-    download_dir: str = Field(default=str(PRO_PATH / "download"))
+    log_dir: str = Field(default=str(PRO_PATH / "logs"))    # 日志目录
+    data_dir: str = Field(default=str(PRO_PATH / "data"))    # 数据目录
+    temp_dir: str = Field(default=str(PRO_PATH / "temp"))    # 临时目录
+    download_dir: str = Field(default=str(PRO_PATH / "download"))    # 下载目录
+    output_dir: str = Field(default=str(Path('E:/GeziSkin/Wads')))  # 输出目录
+
+    mod_dir: str = Field(default=str(PRO_PATH / "mods"))
 
 class Settings(BaseSettings, frozen=True):
     pass
