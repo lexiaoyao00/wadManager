@@ -1,5 +1,6 @@
 assets/
 mods/
+load_mods/
 # Python-generated files
 __pycache__/
 *.py[oc]

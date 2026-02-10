@@ -21,7 +21,7 @@ class HomeView(ft.View):
     def init(self):
         self.scroll = ft.ScrollMode.AUTO
         self.route = '/'
-        self._assets_path = Path(settings.mod_dir)
+        self._assets_path = Path(settings.load_mod_dir)
 
         self.gird_layout = ft.Row(
             wrap=True,
@@ -30,9 +30,11 @@ class HomeView(ft.View):
             scroll = ft.ScrollMode.AUTO,
         )
         mod_manager.load_mods(self._assets_path)
+        mod_manager.organize_mods()
 
         for mod_info in mod_manager.mods.values():
             self.gird_layout.controls.append(ModLabel(mod_info))
+
 
     def build(self):
 

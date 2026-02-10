@@ -18,7 +18,8 @@ class BaseSettings(BaseModel):
     download_dir: str = Field(default=str(PRO_PATH / "download"))    # 下载目录
     output_dir: str = Field(default=str(Path('E:/GeziSkin/Wads')))  # 输出目录
 
-    mod_dir: str = Field(default=str(PRO_PATH / "mods"))
+    mod_dir: str = Field(default=str(PRO_PATH / "mods"))    # mod 存放目录，整理后的mod会存放在这里
+    load_mod_dir: str = Field(default=str(PRO_PATH / "load_mods"))    # 加载mod目录，从该目录中加载mod整理到mod_dir中
 
 class Settings(BaseSettings, frozen=True):
     pass

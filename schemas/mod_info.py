@@ -36,6 +36,8 @@ class ModInfo(BaseModel):
     """MOD信息类，用于存储mod信息"""
 
     file_path: str      # 文件路径
+    file_name: str = None      # 文件名称
+    file_stem : str = None      # 文件名，从path中去除后缀
     name: str = None      # 名称
     author: str = None  # 作者
     cover : str = None  # 封面
@@ -52,5 +54,7 @@ class ModInfo(BaseModel):
         if not Path(self.file_path).is_file():
             raise ValueError(f"文件路径不是一个文件: {self.file_path}")
 
-        self.name = self.name or Path(self.file_path).stem
+        self.file_name = self.file_name or Path(self.file_path).name
+        self.file_stem = self.file_stem or self.file_name.split('.')[0]
+        self.name = self.name or self.file_stem
         return self
