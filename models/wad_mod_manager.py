@@ -103,7 +103,12 @@ class ModManager:
             new_dir_name = NAME_MAP.get(mod.file_stem, mod.file_stem)
             # print(f'new_dir_name = {new_dir_name}')
             new_dir = mod_dir / new_dir_name / mod_dir_name
+
             mod.file_path = str(new_dir / 'WAD' / mod.file_name)
+            if mod.cover is not None:
+                cover_name = Path(mod.cover).name
+                mod.cover = str(new_dir / 'META' / cover_name)
+
             self.mods[new_dir] = mod
             if new_dir.exists():
                 logger.info(f"Mod目录 '{new_dir}' 已存在，跳过")
@@ -119,8 +124,17 @@ class ModManager:
 
         self.installed_mods_info.installed_mods.append(mod_info)
 
+        src_file = mod_info.file_path
+        dst_file = Path(self.installed_mods_info.install_path) / mod_info.file_name
+        shutil.copyfile(src=src_file, dst=dst_file)
+
     def uninstall_mod(self, mod_info : ModInfo):
         """卸载mod"""
+        installed_mod_file = Path(self.installed_mods_info.install_path) / mod_info.file_name
+        if not installed_mod_file.exists():
+            logger.warning(f"Mod '{mod_info.name}' 未安装，跳过")
+            return
+        installed_mod_file.unlink()
         self.installed_mods_info.installed_mods.remove(mod_info)
 
     def install_mods(self, mods: List[ModInfo]):

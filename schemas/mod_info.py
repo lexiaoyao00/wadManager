@@ -38,8 +38,8 @@ class ModState(BaseModel):
 class ModInfo(BaseModel):
     """MOD信息类，用于存储mod信息"""
 
-    file_path: str      # 文件路径
-    file_name: str = None      # 文件名称
+    file_path: str      # 文件路径，唯一
+    file_name: str = None      # 文件名称，包含后缀
     file_stem : str = None      # 文件名，从path中去除后缀
     name: str = None      # 名称
     author: str = None  # 作者
@@ -60,6 +60,14 @@ class ModInfo(BaseModel):
         self.file_stem = self.file_stem or self.file_name.split('.')[0]
         self.name = self.name or self.file_stem
         return self
+
+    def __eq__(self, other):
+        if not isinstance(other, ModInfo):
+            return False
+        return self.file_path == other.file_path
+
+    def __hash__(self):
+        return hash(self.file_path)
 
 
 class InstalledModInfo(BaseModel):
