@@ -1,5 +1,5 @@
 import flet as ft
-from widgets.mod_label import ModLabel,ModInfo
+from widgets.mod_label import ModLabel,ModInfo,ModState, InstallState
 from widgets.nav_bar import NavBar
 from pathlib import Path
 from config import settings
@@ -21,24 +21,42 @@ class HomeView(ft.View):
     def init(self):
         self.scroll = ft.ScrollMode.AUTO
         self.route = '/'
-        self._assets_path = Path(settings.load_mod_dir)
+        self._assets_path = settings.load_mod_dir
 
-        self.gird_layout = ft.Row(
+        self.menu = ft.Row(
+            alignment=ft.MainAxisAlignment.END,
+            controls=[
+                ft.Button(content="安装选择")
+            ]
+        )
+        self.mod_gird = ft.Row(
             wrap=True,
             spacing=10,
             run_spacing=10,
             scroll = ft.ScrollMode.AUTO,
         )
         mod_manager.load_mods(self._assets_path)
-        mod_manager.organize_mods()
+        if self._assets_path != settings.mod_dir:
+            mod_manager.organize_mods()
+        mod_manager.load_installed_mods()
 
         for mod_info in mod_manager.mods.values():
-            self.gird_layout.controls.append(ModLabel(mod_info))
+            state = ModState()
+            if mod_info in mod_manager.installed_mods_info.installed_mods:
+                state.install_state = InstallState.INSTALLED
+
+            self.mod_gird.controls.append(ModLabel(mod_info, state))
 
 
     def build(self):
 
         self.controls = [
             NavBar(title='主页'),
-            self.gird_layout
+            self.mod_gird
         ]
+
+    def _install_selected(self, e:ft.Event[ft.Button]):
+        for mod_label  in self.mod_gird.controls:
+            if mod_label.selected:
+                mod_label.mod_info.install()
+                mod_label.selected = False

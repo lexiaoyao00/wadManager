@@ -1,6 +1,10 @@
 import flet as ft
 from typing import Union
-from schemas.mod_info import InstallState, ModInfo
+from schemas.mod_info import ModState, ModInfo,InstallState
+from models import mod_manager
+from pubsub import pub
+from utils import EventTopic
+
 @ft.control
 class TitleText(ft.Text):
     """标题文本"""
@@ -31,12 +35,10 @@ class InstallStateChip(ft.Chip):
         self.margin = 5
 
     def build(self):
-        if self.state == InstallState.INSTALLING:
-            self.color = ft.Colors.YELLOW_100
-        elif self.state == InstallState.INSTALLED:
+
+        if self.state == InstallState.INSTALLED:
             self.color = ft.Colors.GREEN_200
-        elif self.state == InstallState.UNINSTALLING:
-            self.color = ft.Colors.RED_100
+
         elif self.state == InstallState.UNINSTALLED:
             self.color = ft.Colors.GREY_100
 
@@ -44,17 +46,23 @@ class InstallStateChip(ft.Chip):
 
 @ft.control
 class ModContainer(ft.Container):
-    def __init__(self,mod_info: ModInfo):
+    def __init__(self,mod_info: ModInfo, state : ModState):
 
-        cover = mod_info.cover or "assets/img/10655689.jpg"
-        title = mod_info.name or "未知名称"
-        author = mod_info.author or "未知作者"
+        self.mod_info = mod_info
+        self.state = state
+        cover = self.mod_info.cover or "assets/img/10655689.jpg"
+        title = self.mod_info.name or "未知名称"
+        author = self.mod_info.author or "未知作者"
 
-        state = mod_info.state or InstallState.UNINSTALLED
         self.cover_image = CoverImage(src=cover,width=200)
         self.title_text = TitleText(value=title)
         self.author_text = AuthorText(value=author)
-        self.state_chip = InstallStateChip(install_state=state)
+        self.state_chip = InstallStateChip(install_state=self.state.install_state)
+
+        self.selected = False
+        self.installed = False
+        if self.state.install_state == InstallState.INSTALLED:
+            self.installed = True
         super().__init__()
 
     def init(self):
@@ -63,6 +71,8 @@ class ModContainer(ft.Container):
         self.border_radius = 10
         self.border = ft.Border.all(width=2,color=ft.Colors.GREY_200)
         self.alignment = ft.Alignment.CENTER
+        self.on_click = self._select
+        self.on_hover = self._on_hover
 
     def build(self):
         self.content = ft.Column(
@@ -86,54 +96,80 @@ class ModContainer(ft.Container):
         self.state_chip = InstallStateChip(install_state=state) if state else self.state_chip.state
         self.build()
 
-@ft.control
-class ModLabel(ft.GestureDetector):
-    def __init__(self, mod_info : ModInfo):
-
-        self.mod_info = mod_info
-        self._mod_container = ModContainer(self.mod_info)
-        self.selected = False
-        self.installed = False
-        if self.mod_info.state == InstallState.INSTALLED:
-            self.installed = True
-
-        super().__init__()
-
-    def init(self):
-        self.width = self._mod_container.width
-        self.height = self._mod_container.height
-        self.content = self._mod_container
-        self.tooltip = self.mod_info.description
-        self.on_enter = self._on_enter
-        self.on_exit = self._on_exit
-        self.on_tap = self._select
-        # self.on_double_tap = self._install
-
-    def _on_exit(self, e:ft.PointerEvent):
+    def _on_hover(self, e:ft.HoverEvent):
         if self.selected:
             return
-
-        self._mod_container.border = ft.Border.all(width=2,color=ft.Colors.GREY)
-        self.scale = 1.0
-
-    def _on_enter(self, e:ft.PointerEvent):
-        if self.selected:
-            return
-        self._mod_container.border = ft.Border.all(width=2,color=ft.Colors.BLACK)
-        self.scale = 1.02
+        if e.data:
+            self.border = ft.Border.all(width=2,color=ft.Colors.BLACK)
+            self.scale = 1.02
+        else:
+            self.border = ft.Border.all(width=2,color=ft.Colors.GREY)
+            self.scale = 1.0
 
 
 
     def _select(self, e:ft.TapEvent):
         if self.selected:
             self.selected = False
-            self._mod_container.border = ft.Border.all(width=2,color=ft.Colors.GREY)
+            self.border = ft.Border.all(width=2,color=ft.Colors.BLACK)
         else:
             self.selected = True
-            self._mod_container.border = ft.Border.all(width=4,color=ft.Colors.BLUE)
+            self.border = ft.Border.all(width=4,color=ft.Colors.BLUE)
 
+    def _install_or_uninstall(self, e:ft.TapEvent):
+        if self.installed:
+            self._uninstall(e)
+        else:
+            self._install(e)
 
     def _install(self, e:ft.TapEvent):
-        self.installed = not self.installed
-        current_state = InstallState.INSTALLED if self.installed else InstallState.UNINSTALLED
-        self._mod_container.change_info(state = current_state)
+        self.installed = True
+        self.change_info(state = InstallState.INSTALLED)
+        pub.sendMessage(EventTopic.MOD_INSTALL.value, mod_info=self.mod_info)
+
+    def _uninstall(self, e:ft.TapEvent):
+        self.installed = False
+        self.change_info(state = InstallState.UNINSTALLED)
+        pub.sendMessage(EventTopic.MOD_UNINSTALL.value, mod_info=self.mod_info)
+
+@ft.control
+class ModLabel(ft.ContextMenu):
+    def __init__(self, mod_info : ModInfo,state : ModState):
+
+        self.mod_info = mod_info
+        self.state = state
+        self.mod_container = ModContainer(self.mod_info, self.state)
+        super().__init__(content=self.mod_container)
+
+    def init(self):
+        self.secondary_items = [
+            ft.PopupMenuItem(content="安装/卸载", on_click=self._install_or_uninstall),
+        ]
+        self.secondary_trigger = ft.ContextMenuTrigger.DOWN,
+
+    def _install_or_uninstall(self, e:ft.TapEvent):
+        self.mod_container._install_or_uninstall(e)
+        mod_manager.save_installed_mods()
+
+
+    def install(self):
+        self.mod_container._install()
+
+    def uninstall(self):
+        self.mod_container._uninstall()
+
+    @property
+    def selected(self):
+        return self.mod_container.selected
+
+    @selected.setter
+    def selected(self, value):
+        self.mod_container.selected = value
+
+    @property
+    def installed(self):
+        return self.mod_container.installed
+
+    @installed.setter
+    def installed(self, value):
+        self.mod_container.installed = value

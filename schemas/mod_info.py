@@ -6,9 +6,7 @@ from typing import Optional,List
 # 安装状态
 class InstallState(Enum):
     """安装状态"""
-    INSTALLING = "安装中"
     INSTALLED = "已安装"
-    UNINSTALLING = "卸载中"
     UNINSTALLED = "未安装"
 
 class ModCategory(Enum):
@@ -32,6 +30,11 @@ class ModCategory(Enum):
     "Version": "2.2"
 }
 """
+class ModState(BaseModel):
+    """mod状态"""
+    install_state: InstallState = InstallState.UNINSTALLED
+    install_path: str = None
+
 class ModInfo(BaseModel):
     """MOD信息类，用于存储mod信息"""
 
@@ -44,7 +47,6 @@ class ModInfo(BaseModel):
     description: str = '无描述' # 描述
     version: str = None # 版本
     category:Optional[List[ModCategory]]  = None # 分类
-    state : InstallState = InstallState.UNINSTALLED # 安装状态
 
     @model_validator(mode='after')
     def check_file_path(self):
@@ -58,3 +60,9 @@ class ModInfo(BaseModel):
         self.file_stem = self.file_stem or self.file_name.split('.')[0]
         self.name = self.name or self.file_stem
         return self
+
+
+class InstalledModInfo(BaseModel):
+    """已安装的mod信息类，用于存储已安装的mod信息"""
+    install_path: str = None # 安装路径
+    installed_mods : List[ModInfo] = None

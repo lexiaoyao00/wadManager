@@ -1,9 +1,9 @@
 
 __all__ = [
     'ModManager',
-    'mod_manager',
+    'wad_mod_manager',
 ]
 
-from .mod_manager import ModManager
+from .wad_mod_manager import ModManager
 
 mod_manager = ModManager()

@@ -1,9 +1,12 @@
-import asyncio
-
 import flet as ft
+from config import settings
+from loguru import logger
+logger.add(sink= settings.log_dir + '/debug.log', enqueue=True, rotation='10 MB', level='DEBUG')
+
+
 import views
 from flet_router import router
-from views.setting_view import DirViewWidget
+
 
 
 def main(page: ft.Page):
@@ -34,24 +37,6 @@ def main(page: ft.Page):
     page.on_view_pop = view_pop
     page.views.clear()
     route_change()
-
-def test(page: ft.Page):
-    tf = ft.TextField(label='test',
-                         value='',
-                         border=ft.InputBorder.OUTLINE,
-                         text_size=20,
-                         expand=1)
-    btn = ft.IconButton(icon=ft.Icons.FOLDER_OPEN,tooltip='选择目录')
-    path_row1 = ft.Row(expand=True,controls=[tf,btn])
-    page.add(
-        ft.Column(
-            controls=[
-                path_row1,
-                ft.Row(expand=True,controls=[tf,btn]),
-                DirViewWidget(name='test'),
-            ]
-        )
-    )
 
 if __name__ == "__main__":
     ft.run(main)

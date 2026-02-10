@@ -21,6 +21,9 @@ class BaseSettings(BaseModel):
     mod_dir: str = Field(default=str(PRO_PATH / "mods"))    # mod 存放目录，整理后的mod会存放在这里
     load_mod_dir: str = Field(default=str(PRO_PATH / "load_mods"))    # 加载mod目录，从该目录中加载mod整理到mod_dir中
 
+
+    # 数据配置
+    installed_mod_info_file : str = Field(default= 'installed.json')    # 已安装mod信息文件
 class Settings(BaseSettings, frozen=True):
     pass
 

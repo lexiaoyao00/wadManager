@@ -9,3 +9,13 @@ class FileType(Enum):
     DOC = 'doc'
     MOD = 'mod'
     UNKNOWN = 'unknown'
+
+class EventTopic(Enum):
+    """事件主题"""
+    MOD_INSTALL = 'mod_install'
+    MOD_INSTALL_MUTIPLE = 'mod_install_multiple'
+
+    MOD_UNINSTALL = 'mod_uninstall'
+    MOD_UNINSTALL_MUTIPLE = 'mod_uninstall_multiple'
+
+    MOD_INSTALL_OR_UNINSTALL = 'mod_install_or_uninstall'
