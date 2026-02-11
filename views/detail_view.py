@@ -6,7 +6,7 @@ from config import settings
 from flet_router import router
 from models import mod_manager
 from loguru import logger
-from utils import judge_file_type,FileType,EventTopic
+from utils import judge_file_type,FileType,EventTopic,open_folder
 from schemas.mod_info import ModCategory
 import json
 from typing import Dict,List
@@ -142,7 +142,6 @@ class DetailList(ft.Column):
         self.author_tf = ft.TextField(label="作者", value=self.mod_info.author,expand=True)
         self.description_tf = ft.TextField(label="描述", value=self.mod_info.description,multiline=True,expand=True)
         self.version_tf = ft.TextField(label="版本", value=self.mod_info.version,expand=True)
-        print(self.mod_info.category)
         self.category_pk = TagPicker(selected_tags=self.mod_info.category)
 
         self.preview_imgs = ft.Row(
@@ -198,11 +197,17 @@ class DetailView(ft.View):
         self.mod_path : str = self.page.session.store.get('mod_path')
         self.detail_list = DetailList(self.mod_path)
         self.save_btn = ft.ElevatedButton(content="保存", on_click=self.save_info)
+        self.open_dir_btn = ft.ElevatedButton(content="打开目录", on_click=self.open_dir)
         self.controls = [
             NavBar(title="详情页"),
-            self.save_btn,
+            ft.Row(controls=[
+                self.save_btn,
+                self.open_dir_btn,]),
             self.detail_list,
         ]
 
     def save_info(self, e):
         self.detail_list.save_info()
+
+    def open_dir(self, e):
+        open_folder(self.detail_list.meta_path)

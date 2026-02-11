@@ -113,18 +113,20 @@ class ModContainer(ft.Container):
 
     def _install_or_uninstall(self, e:ft.TapEvent):
         if self.installed:
-            self._uninstall(e)
+            self._uninstall()
         else:
-            self._install(e)
+            self._install()
 
-    def _install(self, e:ft.TapEvent):
+    def _install(self):
         self.installed = True
-        self.change_info(state = InstallState.INSTALLED)
+        self.state.install_state = InstallState.INSTALLED
+        self.build()
         pub.sendMessage(EventTopic.MOD_INSTALL.value, mod_info=self.mod_info)
 
-    def _uninstall(self, e:ft.TapEvent):
+    def _uninstall(self):
         self.installed = False
-        self.change_info(state = InstallState.UNINSTALLED)
+        self.state.install_state = InstallState.UNINSTALLED
+        self.build()
         pub.sendMessage(EventTopic.MOD_UNINSTALL.value, mod_info=self.mod_info)
 
     def update_mod_info(self, mod_path : str, mod_info : ModInfo):

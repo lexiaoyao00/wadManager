@@ -94,7 +94,7 @@ class ModManager:
         return ModInfo(file_path=mod_files_path[0])
 
 
-    def organize_mods(self, mod_dir: str|Path = None):
+    def organize_mods(self, mod_dir: str|Path = None, move:bool = False):
         """整理mod文件到模型存放目录中，覆盖操作"""
         if mod_dir is None:
             mod_dir = Path(settings.mod_dir)
@@ -112,7 +112,10 @@ class ModManager:
                 cover_name = Path(mod.cover).name
                 mod.cover = str(new_dir / 'META' / cover_name)
 
-            shutil.copytree(src=dir, dst=new_dir,dirs_exist_ok=True)
+            if move:
+                shutil.move(src=dir, dst=new_dir)
+            else:
+                shutil.copytree(src=dir, dst=new_dir,dirs_exist_ok=True)
 
         self.load_mods(mod_dir)
 

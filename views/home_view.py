@@ -20,15 +20,15 @@ class HomeViewWidget(ft.Column):
 class HomeView(ft.View):
     def init(self):
         self.scroll = ft.ScrollMode.AUTO
-        self._assets_path = settings.mod_dir
+        self._assets_path = settings.load_mod_dir
 
         self.menu = ft.Row(
             alignment=ft.MainAxisAlignment.END,
             expand=True,
             controls=[
-                ft.Button(content="安装选择"),
-                ft.Button(content="卸载选择"),
-                ft.Button(content="整理模型")
+                ft.Button(content="安装选择", on_click=self.install_mods),
+                ft.Button(content="卸载选择", on_click=self.uninstall_mods),
+                ft.Button(content="整理模型", on_click=self.organize_mods),
             ]
         )
         self.mod_gird = ft.Row(
@@ -42,12 +42,16 @@ class HomeView(ft.View):
         #     mod_manager.organize_mods()
         mod_manager.load_installed_mods()
 
+        self.show_mods_info()
+
+
+    def show_mods_info(self):
+        self.mod_gird.controls.clear()
         for mod_path, mod_info in mod_manager.mods.items():
             state = ModState()
             if mod_info in mod_manager.installed_mods_info.installed_mods:
                 state.install_state = InstallState.INSTALLED
             self.mod_gird.controls.append(ModLabel(mod_path, state))
-
 
     def build(self):
 
@@ -63,3 +67,50 @@ class HomeView(ft.View):
             ),
 
         ]
+
+    def install_mods(self, e):
+        selected_mods = [mod for mod in self.mod_gird.controls if isinstance(mod, ModLabel) and mod.selected == True]
+        if len(selected_mods) == 0:
+            self.page.show_dialog(ft.AlertDialog(title='警告', content=ft.Text('请选择要安装的模型')))
+            return
+
+        for mod in selected_mods:
+            mod.install()
+        mod_manager.save_installed_mods()
+
+
+    def uninstall_mods(self, e):
+        selected_mods = [mod for mod in self.mod_gird.controls if isinstance(mod, ModLabel) and mod.selected == True]
+        if len(selected_mods) == 0:
+            self.page.show_dialog(ft.AlertDialog(title='警告', content=ft.Text('请选择要安装的模型')))
+            return
+
+        for mod in selected_mods:
+            mod.uninstall()
+        mod_manager.save_installed_mods()
+
+
+    def organize_mods(self, e):
+
+
+        def confirm_organize_mods(e):
+            mod_manager.organize_mods()
+            alert.open = False
+            self.show_mods_info()
+            self.page.update()
+
+        def cancel_organize_mods(e):
+            alert.open = False
+            self.page.update()
+
+        alert = ft.AlertDialog(
+            title='警告',
+            content=ft.Text('整理后会将模型复制到mods目录，确定要整理模型吗？'),
+            modal=True,
+            actions=[
+                ft.TextButton('确定', on_click=confirm_organize_mods),
+                ft.TextButton('取消', on_click=cancel_organize_mods),
+            ]
+        )
+        self.page.show_dialog(alert)
+
