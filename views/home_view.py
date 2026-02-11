@@ -42,12 +42,11 @@ class HomeView(ft.View):
         #     mod_manager.organize_mods()
         mod_manager.load_installed_mods()
 
-        for mod_info in mod_manager.mods.values():
+        for mod_path, mod_info in mod_manager.mods.items():
             state = ModState()
             if mod_info in mod_manager.installed_mods_info.installed_mods:
                 state.install_state = InstallState.INSTALLED
-
-            self.mod_gird.controls.append(ModLabel(mod_info, state))
+            self.mod_gird.controls.append(ModLabel(mod_path, state))
 
 
     def build(self):
@@ -64,9 +63,3 @@ class HomeView(ft.View):
             ),
 
         ]
-
-    def _install_selected(self, e:ft.Event[ft.Button]):
-        for mod_label  in self.mod_gird.controls:
-            if mod_label.selected:
-                mod_label.mod_info.install()
-                mod_label.selected = False

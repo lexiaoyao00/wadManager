@@ -31,6 +31,7 @@ class ModManager:
         pub.subscribe(self.install_mods, EventTopic.MOD_INSTALL_MUTIPLE.value)
         pub.subscribe(self.uninstall_mod, EventTopic.MOD_UNINSTALL.value)
         pub.subscribe(self.uninstall_mods, EventTopic.MOD_UNINSTALL_MUTIPLE.value)
+        pub.subscribe(self.update_mod_info, EventTopic.MOD_INFO_UPDATE.value)
 
     def load_mods(self,load_mod_dir: str|Path):
         """加载mod信息，mod目录中必须每个按照META和WAD存放，与cslol一致"""
@@ -147,4 +148,9 @@ class ModManager:
         """卸载多个mod"""
         for mod in mods:
             self.uninstall_mod(mod)
+
+    def update_mod_info(self, mod_path : str, mod_info : ModInfo):
+        """更新mod信息"""
+        logger.debug('mod manager 更新mod信息')
+        self.mods[mod_path] = mod_info
 

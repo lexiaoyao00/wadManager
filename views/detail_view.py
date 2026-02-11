@@ -6,10 +6,11 @@ from config import settings
 from flet_router import router
 from models import mod_manager
 from loguru import logger
-from utils import judge_file_type,FileType
+from utils import judge_file_type,FileType,EventTopic
 from schemas.mod_info import ModCategory
 import json
 from typing import Dict,List
+from pubsub import pub
 
 MOD_TAG_COLORS : Dict[ModCategory,ft.Colors] = {
     ModCategory.SKIN : ft.Colors.AMBER_200,
@@ -33,10 +34,13 @@ class TagPicker(ft.Column):
 
     def init(self):
         self.tag_row = ft.Row(wrap=True,spacing=5)
+        for tag in self.selected_tags:
+            self.add_tag_chip(tag)
+
         self.suggestion_list = ft.Column(visible=False, spacing=2)
 
         self.input_field = ft.TextField(
-            label="输入或选择标签",
+            label="输入或选择类型",
             width=self.width,
             autofocus=False,
             on_change=self.on_input_change,
@@ -92,6 +96,13 @@ class TagPicker(ft.Column):
             return
 
         self.selected_tags.append(tag)
+
+        self.add_tag_chip(tag)
+        self.input_field.value = ""
+        self.suggestion_list.visible = False
+        self.update()
+
+    def add_tag_chip(self, tag: ModCategory):
         chip_color = MOD_TAG_COLORS.get(tag, ft.Colors.GREY_300)
 
         chip = ft.Chip(
@@ -100,10 +111,6 @@ class TagPicker(ft.Column):
             on_delete=lambda e, t=tag: self.remove_tag(t),
         )
         self.tag_row.controls.append(chip)
-
-        self.input_field.value = ""
-        self.suggestion_list.visible = False
-        self.update()
 
     def remove_tag(self, tag: ModCategory):
         self.selected_tags.remove(tag)
@@ -120,19 +127,22 @@ class TagPicker(ft.Column):
 
 @ft.control
 class DetailList(ft.Column):
-    def __init__(self, mod_info: ModInfo):
-        self.mod_info = mod_info
+    def __init__(self, mod_path: str):
+        self.mod_path = mod_path
         super().__init__()
 
     def init(self):
         self.scroll = ft.ScrollMode.AUTO
         self.expand = True
 
+    def build(self):
+        self.mod_info = mod_manager.mods.get(self.mod_path)
         self.file_path_tf = ft.TextField(label="文件路径", value=self.mod_info.file_path,read_only=True,expand=True)
         self.name_tf = ft.TextField(label="名称", value=self.mod_info.name,expand=True)
         self.author_tf = ft.TextField(label="作者", value=self.mod_info.author,expand=True)
         self.description_tf = ft.TextField(label="描述", value=self.mod_info.description,multiline=True,expand=True)
         self.version_tf = ft.TextField(label="版本", value=self.mod_info.version,expand=True)
+        print(self.mod_info.category)
         self.category_pk = TagPicker(selected_tags=self.mod_info.category)
 
         self.preview_imgs = ft.Row(
@@ -154,7 +164,6 @@ class DetailList(ft.Column):
                         src=str(img_path),
                     ))
 
-    def build(self):
         self.controls = [
             self.file_path_tf,
             self.name_tf,
@@ -181,12 +190,13 @@ class DetailList(ft.Column):
                 f, ensure_ascii=False, indent=4)
 
         self.update()
+        pub.sendMessage(EventTopic.MOD_INFO_UPDATE.value, mod_path = self.mod_path, mod_info=self.mod_info)
 
 @router.route('/detail')
 class DetailView(ft.View):
     def build(self):
-        self.mod_info : ModInfo = self.page.session.store.get('mod_info')
-        self.detail_list = DetailList(self.mod_info)
+        self.mod_path : str = self.page.session.store.get('mod_path')
+        self.detail_list = DetailList(self.mod_path)
         self.save_btn = ft.ElevatedButton(content="保存", on_click=self.save_info)
         self.controls = [
             NavBar(title="详情页"),

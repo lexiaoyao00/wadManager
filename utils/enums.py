@@ -19,3 +19,5 @@ class EventTopic(Enum):
     MOD_UNINSTALL_MUTIPLE = 'mod_uninstall_multiple'
 
     MOD_INSTALL_OR_UNINSTALL = 'mod_install_or_uninstall'
+
+    MOD_INFO_UPDATE = 'mod_info_update'

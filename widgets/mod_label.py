@@ -48,18 +48,16 @@ class InstallStateChip(ft.Chip):
 
 @ft.control
 class ModContainer(ft.Container):
-    def __init__(self,mod_info: ModInfo, state : ModState):
-
-        self.mod_info = mod_info
+    def __init__(self,mod_path: str, state : ModState):
+        self.mod_path = mod_path
+        self.mod_info = mod_manager.mods.get(mod_path)
         self.state = state
-        cover = self.mod_info.cover or "assets/img/10655689.jpg"
-        title = self.mod_info.name or "未知名称"
-        author = self.mod_info.author or "未知作者"
+        self.cover = self.mod_info.cover or "assets/img/10655689.jpg"
+        self.title = self.mod_info.name or "未知名称"
+        self.author = self.mod_info.author or "未知作者"
 
-        self.cover_image = CoverImage(src=cover)
-        self.title_text = TitleText(value=title)
-        self.author_text = AuthorText(value=author)
-        self.state_chip = InstallStateChip(install_state=self.state.install_state)
+
+        pub.subscribe(self.update_mod_info, EventTopic.MOD_INFO_UPDATE.value)
 
         self.selected = False
         self.installed = False
@@ -77,6 +75,11 @@ class ModContainer(ft.Container):
         self.on_hover = self._on_hover
 
     def build(self):
+        self.cover_image = CoverImage(src=self.cover)
+        self.title_text = TitleText(value=self.title)
+        self.author_text = AuthorText(value=self.author)
+        self.state_chip = InstallStateChip(install_state=self.state.install_state)
+
         self.content = ft.Column(
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             expand=True,
@@ -87,16 +90,6 @@ class ModContainer(ft.Container):
                 self.state_chip
             ]
         )
-
-    def change_info(self,cover : Union[str,bytes] = None,
-                    title : str = None,
-                    author : str = None,
-                    state : InstallState = None):
-        self.cover_image.src = cover or self.cover_image.src
-        self.title_text.value = title or self.title_text.value
-        self.author_text.value = author or self.author_text.value
-        self.state_chip = InstallStateChip(install_state=state) if state else self.state_chip.state
-        self.build()
 
     def _on_hover(self, e:ft.HoverEvent):
         if self.selected:
@@ -134,16 +127,25 @@ class ModContainer(ft.Container):
         self.change_info(state = InstallState.UNINSTALLED)
         pub.sendMessage(EventTopic.MOD_UNINSTALL.value, mod_info=self.mod_info)
 
+    def update_mod_info(self, mod_path : str, mod_info : ModInfo):
+        if mod_path == self.mod_path:
+            self.title = mod_info.name or self.title
+            self.author = mod_info.author or self.author
+            self.cover = mod_info.cover or self.cover
+
+            self.build()
+
+
 @ft.control
 class ModLabel(ft.ContextMenu):
-    def __init__(self, mod_info : ModInfo,state : ModState):
+    def __init__(self, mod_path : str,state : ModState):
 
-        self.mod_info = mod_info
+        self.mod_path = mod_path
         self.state = state
+        self.mod_container = ModContainer(self.mod_path, self.state)
         super().__init__(content=self.mod_container)
 
     def build(self):
-        self.mod_container = ModContainer(self.mod_info, self.state)
         self.secondary_items = [
             ft.PopupMenuItem(content="安装/卸载", on_click=self._install_or_uninstall),
             ft.PopupMenuItem(content="详情", on_click=self._show_detail)
@@ -151,7 +153,7 @@ class ModLabel(ft.ContextMenu):
         self.secondary_trigger = ft.ContextMenuTrigger.DOWN,
 
     def _show_detail(self, e:ft.TapEvent):
-        self.page.session.store.set('mod_info',self.mod_info)
+        self.page.session.store.set('mod_path',self.mod_path)
         asyncio.create_task(self.page.push_route('/detail'))
 
     def _install_or_uninstall(self, e:ft.TapEvent):
