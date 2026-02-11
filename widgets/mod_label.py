@@ -4,6 +4,7 @@ from schemas.mod_info import ModState, ModInfo,InstallState
 from models import mod_manager
 from pubsub import pub
 from utils import EventTopic
+import asyncio
 
 @ft.control
 class TitleText(ft.Text):
@@ -20,6 +21,7 @@ class AuthorText(ft.Text):
 class CoverImage(ft.Image):
     """封面图片"""
     border_radius : int = 10
+    fit:ft.BoxFit = ft.BoxFit.FILL
 
 @ft.control
 class InstallStateChip(ft.Chip):
@@ -54,7 +56,7 @@ class ModContainer(ft.Container):
         title = self.mod_info.name or "未知名称"
         author = self.mod_info.author or "未知作者"
 
-        self.cover_image = CoverImage(src=cover,width=200)
+        self.cover_image = CoverImage(src=cover)
         self.title_text = TitleText(value=title)
         self.author_text = AuthorText(value=author)
         self.state_chip = InstallStateChip(install_state=self.state.install_state)
@@ -138,14 +140,19 @@ class ModLabel(ft.ContextMenu):
 
         self.mod_info = mod_info
         self.state = state
-        self.mod_container = ModContainer(self.mod_info, self.state)
         super().__init__(content=self.mod_container)
 
-    def init(self):
+    def build(self):
+        self.mod_container = ModContainer(self.mod_info, self.state)
         self.secondary_items = [
             ft.PopupMenuItem(content="安装/卸载", on_click=self._install_or_uninstall),
+            ft.PopupMenuItem(content="详情", on_click=self._show_detail)
         ]
         self.secondary_trigger = ft.ContextMenuTrigger.DOWN,
+
+    def _show_detail(self, e:ft.TapEvent):
+        self.page.session.store.set('mod_info',self.mod_info)
+        asyncio.create_task(self.page.push_route('/detail'))
 
     def _install_or_uninstall(self, e:ft.TapEvent):
         self.mod_container._install_or_uninstall(e)

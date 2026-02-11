@@ -53,13 +53,13 @@ class SettingViewWidget(ft.Column):
             DirViewWidget(name="下载目录:",default_value=settings.download_dir),
             DirViewWidget(name="数据目录:",default_value=settings.data_dir),
             DirViewWidget(name="临时目录:",default_value=settings.temp_dir),
+            DirViewWidget(name="模型加载目录:",default_value=settings.load_mod_dir),
             DirViewWidget(name="模型存放目录:",default_value=settings.mod_dir),
             DirViewWidget(name="输出目录:",default_value=settings.output_dir),
         ]
 @router.route('/settings')
 class SettingView(ft.View):
     def init(self):
-        self.route = '/settings'
         self.controls = [
             NavBar(title='设置'),
             SettingViewWidget()

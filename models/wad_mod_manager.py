@@ -1,5 +1,5 @@
 from pathlib import Path
-from schemas.mod_info import ModInfo,InstalledModInfo,InstallState
+from schemas.mod_info import ModInfo,InstalledModInfo,InstallState,ModCategory
 from utils import judge_file_type,FileType,EventTopic
 from typing import List,Dict
 import json
@@ -20,6 +20,7 @@ NAME_MAP = {
     'Caitlyn' : '凯特琳-女警',
     'Briar' : '贝蕾亚-玉足',
 }
+
 class ModManager:
     """从mod目录中加载信息，将需要安装的mod加入到输出目录中"""
     def __init__(self):
@@ -33,6 +34,7 @@ class ModManager:
 
     def load_mods(self,load_mod_dir: str|Path):
         """加载mod信息，mod目录中必须每个按照META和WAD存放，与cslol一致"""
+        self.mods.clear()
         mod_path = Path(load_mod_dir)
         if not mod_path.exists():
             raise FileNotFoundError(f"Mod目录{mod_path}不存在")
@@ -77,6 +79,7 @@ class ModManager:
                     mod_info.author = info.get('Author', None)
                     mod_info.version = info.get('Version', None)
                     mod_info.description = info.get('Description', '无描述')
+                    mod_info.category = [ModCategory(tag) for tag in info.get('Category', [])]
 
             if judge_file_type(f) == FileType.IMAGE:
                 mod_info.cover = str(f)
@@ -90,14 +93,13 @@ class ModManager:
         return ModInfo(file_path=mod_files_path[0])
 
 
-    """整理mod文件"""
     def organize_mods(self, mod_dir: str|Path = None):
+        """整理mod文件到模型存放目录中，覆盖操作"""
         if mod_dir is None:
             mod_dir = Path(settings.mod_dir)
         mod_dir = Path(mod_dir)
         mod_dir.mkdir(parents=True, exist_ok=True)
         old_mos = self.mods.copy()
-        self.mods.clear()
         for dir,mod in old_mos.items():
             mod_dir_name = Path(dir).name
             new_dir_name = NAME_MAP.get(mod.file_stem, mod.file_stem)
@@ -109,11 +111,9 @@ class ModManager:
                 cover_name = Path(mod.cover).name
                 mod.cover = str(new_dir / 'META' / cover_name)
 
-            self.mods[new_dir] = mod
-            if new_dir.exists():
-                logger.info(f"Mod目录 '{new_dir}' 已存在，跳过")
-                continue
-            shutil.copytree(src=dir, dst=new_dir, dirs_exist_ok=True)
+            shutil.copytree(src=dir, dst=new_dir,dirs_exist_ok=True)
+
+        self.load_mods(mod_dir)
 
 
     def install_mod(self, mod_info : ModInfo):

@@ -18,16 +18,19 @@ def main(page: ft.Page):
         #     page.update()
         #     last_route = page.route
         #     return
+        # print(f'切换到 {page.route}')
         new_view = router.navigate(page.route)
         if new_view in page.views:
             index = page.views.index(new_view)
             page.views = page.views[:index+1]
         else:
             page.views.append(new_view)
+        # print(f'当前视图长度: {len(page.views)}')
         page.update()
 
 
     async def view_pop(e:ft.ViewPopEvent):
+        # print(f'pop {e.view.route}')
         if e.view is not None:
             page.views.remove(e.view)
             top_view = page.views[-1]

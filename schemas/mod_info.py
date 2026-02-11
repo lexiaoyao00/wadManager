@@ -1,4 +1,4 @@
-from pydantic import BaseModel,model_validator
+from pydantic import BaseModel,model_validator,ConfigDict
 from enum import Enum
 from pathlib import Path
 from typing import Optional,List
@@ -11,14 +11,14 @@ class InstallState(Enum):
 
 class ModCategory(Enum):
     """mod分类"""
-    SKIN = "皮肤"
-    MAPS = "地图"
-    MEMES = "表情包"
-    TFT = "云顶"
-    UI = "界面"
-    AUDIO = "音效"
-    VTUBER = "虚拟主播"
-    OTHER = "其他"
+    SKIN = "skin"   # 皮肤
+    MAPS =  "maps"  # 地图
+    MEMES = "memes" # 表情包
+    TFT = "tft"     # 云顶
+    UI =  "ui"      # 界面
+    AUDIO = "audio" # 音效
+    VTUBER = "vtuber"   # 虚拟主播
+    OTHER = "other" # 其他
 
 
 """{
@@ -68,6 +68,11 @@ class ModInfo(BaseModel):
 
     def __hash__(self):
         return hash(self.file_path)
+
+    model_config = ConfigDict(
+        alias_generator=lambda s: s[0].upper() + s[1:],
+        populate_by_name=True
+)
 
 
 class InstalledModInfo(BaseModel):

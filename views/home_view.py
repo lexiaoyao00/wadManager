@@ -20,13 +20,15 @@ class HomeViewWidget(ft.Column):
 class HomeView(ft.View):
     def init(self):
         self.scroll = ft.ScrollMode.AUTO
-        self.route = '/'
-        self._assets_path = settings.load_mod_dir
+        self._assets_path = settings.mod_dir
 
         self.menu = ft.Row(
             alignment=ft.MainAxisAlignment.END,
+            expand=True,
             controls=[
-                ft.Button(content="安装选择")
+                ft.Button(content="安装选择"),
+                ft.Button(content="卸载选择"),
+                ft.Button(content="整理模型")
             ]
         )
         self.mod_gird = ft.Row(
@@ -36,8 +38,8 @@ class HomeView(ft.View):
             scroll = ft.ScrollMode.AUTO,
         )
         mod_manager.load_mods(self._assets_path)
-        if self._assets_path != settings.mod_dir:
-            mod_manager.organize_mods()
+        # if self._assets_path != settings.mod_dir:
+        #     mod_manager.organize_mods()
         mod_manager.load_installed_mods()
 
         for mod_info in mod_manager.mods.values():
@@ -52,7 +54,15 @@ class HomeView(ft.View):
 
         self.controls = [
             NavBar(title='主页'),
-            self.mod_gird
+            ft.Column(
+                expand=True,
+                controls=[
+                    self.menu,
+                    self.mod_gird,
+                ],
+                margin=10,
+            ),
+
         ]
 
     def _install_selected(self, e:ft.Event[ft.Button]):
