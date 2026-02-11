@@ -1,11 +1,9 @@
 from pydantic import Field,BaseModel
 from pathlib import Path
-from typing import Any
+from typing import Any,Dict
 import toml
 
 PRO_PATH = Path(__file__).parent.parent
-
-
 
 class BaseSettings(BaseModel):
     # 通用配置
@@ -24,6 +22,8 @@ class BaseSettings(BaseModel):
 
     # 数据配置
     installed_mod_info_file : str = Field(default= 'installed.json')    # 已安装mod信息文件
+
+
 class Settings(BaseSettings, frozen=True):
     pass
 
@@ -31,7 +31,7 @@ CONFIG_PATH = PRO_PATH / "config" / "settings.toml"
 
 def load_settings() -> Settings:
     if CONFIG_PATH.exists():
-        data: dict[str, Any] = toml.load(CONFIG_PATH)
+        data: Dict[str, Any] = toml.load(CONFIG_PATH)
         return Settings(**data)
     else:
         s = BaseSettings()

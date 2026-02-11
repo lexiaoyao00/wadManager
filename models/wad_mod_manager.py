@@ -19,6 +19,7 @@ NAME_MAP = {
     'Soraka' : '索拉卡-星妈',
     'Caitlyn' : '凯特琳-女警',
     'Briar' : '贝蕾亚-玉足',
+    'Katarina' : '卡特琳娜-卡特',
 }
 
 class ModManager:

@@ -5,6 +5,7 @@ from pathlib import Path
 from config import settings
 from flet_router import router
 from models import mod_manager
+import asyncio
 
 @ft.control
 class HomeViewWidget(ft.Column):
@@ -20,7 +21,7 @@ class HomeViewWidget(ft.Column):
 class HomeView(ft.View):
     def init(self):
         self.scroll = ft.ScrollMode.AUTO
-        self._assets_path = settings.load_mod_dir
+        self._assets_path = settings.mod_dir
 
         self.menu = ft.Row(
             alignment=ft.MainAxisAlignment.END,
@@ -28,7 +29,7 @@ class HomeView(ft.View):
             controls=[
                 ft.Button(content="安装选择", on_click=self.install_mods),
                 ft.Button(content="卸载选择", on_click=self.uninstall_mods),
-                ft.Button(content="整理模型", on_click=self.organize_mods),
+                ft.Button(content="加载模型", on_click=self.load_mods),
             ]
         )
         self.mod_gird = ft.Row(
@@ -90,27 +91,20 @@ class HomeView(ft.View):
         mod_manager.save_installed_mods()
 
 
-    def organize_mods(self, e):
 
+    async def load_mods(self, e):
+        selected_path = await ft.FilePicker().get_directory_path(dialog_title='选择模型目录')
 
-        def confirm_organize_mods(e):
-            mod_manager.organize_mods()
-            alert.open = False
-            self.show_mods_info()
-            self.page.update()
+        if selected_path is None:
+            return
 
-        def cancel_organize_mods(e):
-            alert.open = False
-            self.page.update()
+        if selected_path == self._assets_path:
+            self.page.show_dialog(ft.AlertDialog(title='警告', content=ft.Text('当前目录为工具存放模型的目录，无需重复加载')))
+            return
 
-        alert = ft.AlertDialog(
-            title='警告',
-            content=ft.Text('整理后会将模型复制到mods目录，确定要整理模型吗？'),
-            modal=True,
-            actions=[
-                ft.TextButton('确定', on_click=confirm_organize_mods),
-                ft.TextButton('取消', on_click=cancel_organize_mods),
-            ]
-        )
-        self.page.show_dialog(alert)
+        mod_manager.load_mods(selected_path)
+        mod_manager.organize_mods()
+        self.show_mods_info()
+        self.page.update()
+
 
