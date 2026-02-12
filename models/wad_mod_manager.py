@@ -20,6 +20,7 @@ NAME_MAP = {
     'Caitlyn' : '凯特琳-女警',
     'Briar' : '贝蕾亚-玉足',
     'Katarina' : '卡特琳娜-卡特',
+    'Yunara' : '芸阿娜',
 }
 
 class ModManager:
@@ -27,12 +28,21 @@ class ModManager:
     def __init__(self):
         self.installed_mods_info : InstalledModInfo = InstalledModInfo(install_path=settings.output_dir, installed_mods=[]) # 安装的mod的信息，保存为json
         self.mods : Dict[str, ModInfo]= {}  # key为mod目录
+        self.name_map : Dict[str,str] = self._load_name_map()
 
         pub.subscribe(self.install_mod, EventTopic.MOD_INSTALL.value)
         pub.subscribe(self.install_mods, EventTopic.MOD_INSTALL_MUTIPLE.value)
         pub.subscribe(self.uninstall_mod, EventTopic.MOD_UNINSTALL.value)
         pub.subscribe(self.uninstall_mods, EventTopic.MOD_UNINSTALL_MUTIPLE.value)
         pub.subscribe(self.update_mod_info, EventTopic.MOD_INFO_UPDATE.value)
+
+    def _load_name_map(self):
+        """加载name_map"""
+        name_map_file = Path(settings.config_dir) / settings.name_map_file
+        if not name_map_file.exists():
+            return NAME_MAP
+        with open(name_map_file, 'r', encoding='utf-8') as file:
+            return json.load(file)
 
     def load_mods(self,load_mod_dir: str|Path):
         """加载mod信息，mod目录中必须每个按照META和WAD存放，与cslol一致"""
@@ -83,7 +93,7 @@ class ModManager:
                     mod_info.description = info.get('Description', '无描述')
                     mod_info.category = [ModCategory(tag) for tag in info.get('Category', [])]
 
-            if judge_file_type(f) == FileType.IMAGE:
+            if mod_info.cover is None and judge_file_type(f) == FileType.IMAGE:
                 mod_info.cover = str(f)
 
     def _load_wad(self,wad_path: Path):
@@ -104,7 +114,7 @@ class ModManager:
         old_mos = self.mods.copy()
         for dir,mod in old_mos.items():
             mod_dir_name = Path(dir).name
-            new_dir_name = NAME_MAP.get(mod.file_stem, mod.file_stem)
+            new_dir_name = self.name_map.get(mod.file_stem, mod.file_stem)
             # print(f'new_dir_name = {new_dir_name}')
             new_dir = mod_dir / new_dir_name / mod_dir_name
 

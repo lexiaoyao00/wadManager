@@ -39,8 +39,6 @@ class HomeView(ft.View):
             scroll = ft.ScrollMode.AUTO,
         )
         mod_manager.load_mods(self._assets_path)
-        # if self._assets_path != settings.mod_dir:
-        #     mod_manager.organize_mods()
         mod_manager.load_installed_mods()
 
         self.show_mods_info()
@@ -103,7 +101,7 @@ class HomeView(ft.View):
             return
 
         mod_manager.load_mods(selected_path)
-        mod_manager.organize_mods()
+        mod_manager.organize_mods(move=True)
         self.show_mods_info()
         self.page.update()
 
