@@ -30,11 +30,50 @@ class ModManager:
         self.mods : Dict[str, ModInfo]= {}  # key为mod目录
         self.name_map : Dict[str,str] = self._load_name_map()
 
+        self._subscribe_topics()
+
+
+
+    def _subscribe_topics(self):
         pub.subscribe(self.install_mod, EventTopic.MOD_INSTALL.value)
         pub.subscribe(self.install_mods, EventTopic.MOD_INSTALL_MUTIPLE.value)
         pub.subscribe(self.uninstall_mod, EventTopic.MOD_UNINSTALL.value)
         pub.subscribe(self.uninstall_mods, EventTopic.MOD_UNINSTALL_MUTIPLE.value)
         pub.subscribe(self.update_mod_info, EventTopic.MOD_INFO_UPDATE.value)
+        pub.subscribe(self.search_mod, EventTopic.SEARCH_MOD.value)
+
+
+    def search_mod(self, keyword: str = None):
+        """根据关键词搜索mod"""
+        search_result : Dict[str, ModInfo] = {}
+        if not keyword:             # 无关键词，则显示所有
+            search_result = self.mods
+            pub.sendMessage(EventTopic.SERACH_FINISHED.value, result=search_result)
+            return
+
+        for mod_path, mod_info in self.mods.items():
+            if keyword.lower() in mod_info.file_name.lower():   # 文件名中
+                search_result[mod_path] = mod_info
+                continue
+
+            if keyword.lower() in mod_info.name.lower():       # 名称中
+                search_result[mod_path] = mod_info
+                continue
+
+            if mod_info.author and keyword.lower() in mod_info.author.lower():      # 作者中
+                search_result[mod_path] = mod_info
+                continue
+
+            if mod_info.description and keyword.lower() in mod_info.description.lower():  # 描述中
+                search_result[mod_path] = mod_info
+                continue
+
+            chinese_name = self.name_map.get(mod_info.file_stem)
+            if chinese_name and keyword.lower() in chinese_name.lower():
+                search_result[mod_path] = mod_info
+                continue
+
+        pub.sendMessage(EventTopic.SERACH_FINISHED.value, result=search_result)
 
     def _load_name_map(self):
         """加载name_map"""

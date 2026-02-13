@@ -10,15 +10,38 @@ from utils import EventTopic
 import asyncio
 
 @ft.control
+class SearchBar(ft.Row):
+
+    def init(self):
+        self.alignment=ft.MainAxisAlignment.END
+        self.margin = 10
+
+        self._tf_search_kw = ft.TextField(label="搜索", width=200, on_submit=self.search_mods)
+        self._btn_search = ft.ElevatedButton(content="清除搜索", on_click=self.clear_search)
+
+    def build(self):
+        self.controls=[
+            self._tf_search_kw,
+            self._btn_search,
+        ]
+
+    def clear_search(self, e):
+        pub.sendMessage(EventTopic.SEARCH_MOD.value)
+
+    def search_mods(self, e):
+        pub.sendMessage(EventTopic.SEARCH_MOD.value, keyword=self._tf_search_kw.value)
+
+
+@ft.control
 class HomeMenu(ft.Row):
 
     def init(self):
         self.alignment=ft.MainAxisAlignment.END
         self.margin = 10
-        self.height = 30
 
     def build(self):
         self.controls=[
+            SearchBar(),
             ft.Button(content="安装选择", on_click=lambda _ : pub.sendMessage(EventTopic.INSTALL_SELECTED_MOD.value)),
             ft.Button(content="卸载选择", on_click=lambda _ : pub.sendMessage(EventTopic.UNINSTALL_SELECTED_MOD.value)),
             ft.Button(content="加载模型", on_click=lambda _ : pub.sendMessage(EventTopic.LOAD_MOD.value)),
@@ -42,14 +65,19 @@ class ModViewWidget(ft.Row):
         pub.subscribe(self.install_selected_mods, EventTopic.INSTALL_SELECTED_MOD.value)
         pub.subscribe(self.uninstall_selected_mods, EventTopic.UNINSTALL_SELECTED_MOD.value)
         pub.subscribe(self.load_mods, EventTopic.LOAD_MOD.value)
+        pub.subscribe(self.show_search_result, EventTopic.SERACH_FINISHED.value)
 
     def build(self):
         self.show_mods_info()
 
+    def show_search_result(self, result : Dict[str, ModInfo] = None):
+        self.show_mods_info(mods=result)
 
-    def show_mods_info(self):
-        mods = mod_manager.mods
-        installed_mods = mod_manager.installed_mods_info.installed_mods
+    def show_mods_info(self, mods : Dict[str, ModInfo] = None, installed_mods : List[ModInfo] = None):
+        if mods is None:
+            mods = mod_manager.mods
+
+        installed_mods = installed_mods or mod_manager.installed_mods_info.installed_mods
 
         self.controls.clear()
         for mod_path, mod_info in mods.items():

@@ -30,3 +30,6 @@ class EventTopic(Enum):
     LOAD_MOD = 'load_mod'
     INSTALL_SELECTED_MOD = 'install_selected_mod'
     UNINSTALL_SELECTED_MOD = 'uninstall_selected_mod'
+
+    SEARCH_MOD = 'search_mod'
+    SERACH_FINISHED = 'search_finished'
