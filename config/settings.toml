@@ -1,0 +1,11 @@
+debug = false
+log_dir = "e:\\GIT_pros\\wadManager\\logs"
+data_dir = "e:\\GIT_pros\\wadManager\\data"
+temp_dir = "e:\\GIT_pros\\wadManager\\temp"
+download_dir = "e:\\GIT_pros\\wadManager\\download"
+output_dir = "E:\\GeziSkin\\Wads"
+config_dir = "e:\\GIT_pros\\wadManager\\config"
+mod_dir = "e:\\GIT_pros\\wadManager\\mods"
+load_mod_dir = "e:\\GIT_pros\\wadManager\\load_mods"
+name_map_file = "name_map.json"
+installed_mod_info_file = "installed.json"

@@ -55,7 +55,7 @@ class ModContainer(ft.Container):
         self.mod_path = mod_path
         self.mod_info = mod_manager.mods.get(mod_path)
         self.state = state
-        self.cover = self.mod_info.cover or "assets/img/10655689.jpg"
+        self.cover = self.mod_info.cover or "assets/img/default_cover.jpg"
         self.title = self.mod_info.name or "未知名称"
         self.author = self.mod_info.author or "未知作者"
 

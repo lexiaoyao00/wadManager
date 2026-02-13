@@ -26,3 +26,7 @@ class EventTopic(Enum):
     MOD_INSTALL_OR_UNINSTALL = 'mod_install_or_uninstall'
 
     MOD_INFO_UPDATE = 'mod_info_update'
+
+    LOAD_MOD = 'load_mod'
+    INSTALL_SELECTED_MOD = 'install_selected_mod'
+    UNINSTALL_SELECTED_MOD = 'uninstall_selected_mod'

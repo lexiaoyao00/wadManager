@@ -44,6 +44,11 @@ class ModManager:
         with open(name_map_file, 'r', encoding='utf-8') as file:
             return json.load(file)
 
+    def init_load(self, load_mod_dir: str|Path):
+        """初始化加载mod信息"""
+        self.load_mods(load_mod_dir)
+        self.load_installed_mods()
+
     def load_mods(self,load_mod_dir: str|Path):
         """加载mod信息，mod目录中必须每个按照META和WAD存放，与cslol一致"""
         self.mods.clear()
