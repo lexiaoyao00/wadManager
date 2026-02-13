@@ -101,8 +101,12 @@ class HomeView(ft.View):
             return
 
         mod_manager.load_mods(selected_path)
-        mod_manager.organize_mods(move=True)
+        failed =  mod_manager.organize_mods(move=True)
         self.show_mods_info()
+        if len(failed) > 0:
+            alert = ft.AlertDialog(title='警告', content=ft.Text(f'以下模型已经存在，加载失败，请修改名称或者手动覆盖'))
+            self.page.show_dialog(alert)
+
         self.page.update()
 
 

@@ -111,6 +111,7 @@ class ModManager:
             mod_dir = Path(settings.mod_dir)
         mod_dir = Path(mod_dir)
         mod_dir.mkdir(parents=True, exist_ok=True)
+        failed_organize = []
         old_mos = self.mods.copy()
         for dir,mod in old_mos.items():
             mod_dir_name = Path(dir).name
@@ -123,12 +124,17 @@ class ModManager:
                 cover_name = Path(mod.cover).name
                 mod.cover = str(new_dir / 'META' / cover_name)
 
+            if new_dir.exists():
+                failed_organize.append((dir,new_dir))
+                continue
+
             if move:
                 shutil.move(src=dir, dst=new_dir)
             else:
                 shutil.copytree(src=dir, dst=new_dir,dirs_exist_ok=True)
 
         self.load_mods(mod_dir)
+        return failed_organize
 
 
     def install_mod(self, mod_info : ModInfo):
@@ -137,11 +143,22 @@ class ModManager:
             logger.warning(f"Mod '{mod_info.name}' 已安装，跳过")
             return
 
-        self.installed_mods_info.installed_mods.append(mod_info)
 
         src_file = mod_info.file_path
         dst_file = Path(self.installed_mods_info.install_path) / mod_info.file_name
-        shutil.copyfile(src=src_file, dst=dst_file)
+
+        if dst_file.exists():
+            logger.warning(f"Mod '{mod_info.name}' 已安装，跳过")
+            pub.sendMessage(EventTopic.MOD_INSTALL_EXIST.value, mod_info=mod_info, msg="模组已存在或冲突")
+            return
+
+        try:
+            shutil.copyfile(src=src_file, dst=dst_file)
+            self.installed_mods_info.installed_mods.append(mod_info)
+            pub.sendMessage(EventTopic.MOD_INSTALL_SUCCEED.value, mod_info=mod_info)
+        except Exception as e:
+            logger.error(f"安装mod '{mod_info.name}' 失败，错误信息：{e}")
+            pub.sendMessage(EventTopic.MOD_INSTALL_FAILED.value, mod_info=mod_info)
 
     def uninstall_mod(self, mod_info : ModInfo):
         """卸载mod"""
@@ -151,6 +168,7 @@ class ModManager:
             return
         installed_mod_file.unlink()
         self.installed_mods_info.installed_mods.remove(mod_info)
+
 
     def install_mods(self, mods: List[ModInfo]):
         """安装多个mod"""

@@ -41,6 +41,9 @@ class InstallStateChip(ft.Chip):
         if self.state == InstallState.INSTALLED:
             self.color = ft.Colors.GREEN_200
 
+        elif self.state == InstallState.INSTALLING:
+            self.color = ft.Colors.YELLOW_200
+
         elif self.state == InstallState.UNINSTALLED:
             self.color = ft.Colors.GREY_100
 
@@ -58,6 +61,9 @@ class ModContainer(ft.Container):
 
 
         pub.subscribe(self.update_mod_info, EventTopic.MOD_INFO_UPDATE.value)
+        pub.subscribe(self._install_success, EventTopic.MOD_INSTALL_SUCCEED.value)
+        pub.subscribe(self._install_failed, EventTopic.MOD_INSTALL_FAILED.value)
+        pub.subscribe(self._install_failed, EventTopic.MOD_INSTALL_EXIST.value)
 
         self.selected = False
         self.installed = False
@@ -119,7 +125,7 @@ class ModContainer(ft.Container):
 
     def _install(self):
         self.installed = True
-        self.state.install_state = InstallState.INSTALLED
+        self.state.install_state = InstallState.INSTALLING
         self.build()
         pub.sendMessage(EventTopic.MOD_INSTALL.value, mod_info=self.mod_info)
 
@@ -128,6 +134,19 @@ class ModContainer(ft.Container):
         self.state.install_state = InstallState.UNINSTALLED
         self.build()
         pub.sendMessage(EventTopic.MOD_UNINSTALL.value, mod_info=self.mod_info)
+
+    def _install_success(self, mod_info: ModInfo):
+        if mod_info.file_path == self.mod_info.file_path:
+            self.state.install_state = InstallState.INSTALLED
+            self.build()
+
+    def _install_failed(self, mod_info: ModInfo, msg : str = None):
+        if mod_info.file_path == self.mod_info.file_path:
+            self.state.install_state = InstallState.UNINSTALLED
+            alert = ft.AlertDialog(title=ft.Text(value="安装失败"),content=ft.Text(value=msg or mod_info.name+" 安装失败"),actions=[ft.TextButton("确定")])
+            self.page.show_dialog(alert)
+            self.build()
+
 
     def update_mod_info(self, mod_path : str, mod_info : ModInfo):
         if mod_path == self.mod_path:

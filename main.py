@@ -1,6 +1,7 @@
 import flet as ft
 from config import settings
 from loguru import logger
+import sys
 logger.add(sink= settings.log_dir + '/debug.log', enqueue=True, rotation='10 MB', level='DEBUG')
 
 
@@ -36,8 +37,14 @@ def main(page: ft.Page):
             top_view = page.views[-1]
             await page.push_route(top_view.route)
 
+    async def on_close(e):
+        # print("窗口关闭，准备退出...")
+        await page.window.destroy()  # 关闭窗口
+        sys.exit(0)            # 退出程序
+
     page.on_route_change = route_change
     page.on_view_pop = view_pop
+    page.on_close = on_close
     page.views.clear()
     route_change()
 

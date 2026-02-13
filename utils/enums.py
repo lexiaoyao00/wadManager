@@ -15,6 +15,11 @@ class EventTopic(Enum):
     MOD_INSTALL = 'mod_install'
     MOD_INSTALL_MUTIPLE = 'mod_install_multiple'
 
+    MOD_INSTALL_SUCCEED = 'mod_install_success'
+    MOD_INSTALL_FAILED = 'mod_install_faild'
+
+    MOD_INSTALL_EXIST = 'mod_install_exist'
+
     MOD_UNINSTALL = 'mod_uninstall'
     MOD_UNINSTALL_MUTIPLE = 'mod_uninstall_multiple'
 

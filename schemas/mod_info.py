@@ -7,6 +7,7 @@ from typing import Optional,List
 class InstallState(Enum):
     """安装状态"""
     INSTALLED = "已安装"
+    INSTALLING = "安装中"
     UNINSTALLED = "未安装"
 
 class ModCategory(Enum):
